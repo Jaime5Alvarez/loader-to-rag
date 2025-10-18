@@ -18,14 +18,12 @@ async def process_excel_to_documents(file_path: str):
     sheets_dict = await load_excel_async(file_path)
 
     data = []
-    # Procesar cada hoja del archivo Excel
     for sheet_name, df in sheets_dict.items():
-        for idx, row in df.iterrows():
-            content_parts = []
-            for col in df.columns:
-                content_parts.append(f"{col}: {row[col]}")
-            content = "\n".join(content_parts)
-
+        records = df.to_dict('records')
+        
+        for idx, row_dict in enumerate(records):
+            content = "\n".join([f"{col}: {val}" for col, val in row_dict.items()])
+            
             doc = Document(
                 page_content=content,
                 metadata={"source": file_path, "sheet": sheet_name, "row": idx},
