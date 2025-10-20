@@ -2,18 +2,11 @@ import polars as pl
 import asyncio
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
-from concurrent.futures import ThreadPoolExecutor
-
-executor = ThreadPoolExecutor(max_workers=4)
 
 
 async def load_excel_async(file_path: str):
-    loop = asyncio.get_event_loop()
-    # sheet_id=0 lee todas las hojas y devuelve un diccionario
-    def read_all_sheets(file_path: str):
-        return pl.read_excel(file_path, sheet_id=0)
-    
-    sheets_dict = await loop.run_in_executor(executor, read_all_sheets, file_path)
+
+    sheets_dict = await asyncio.to_thread(pl.read_excel, file_path, sheet_id=0)
     return sheets_dict
 
 
