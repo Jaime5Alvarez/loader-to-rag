@@ -1,4 +1,4 @@
-import pandas as pd
+import polars as pl
 import asyncio
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
@@ -9,8 +9,11 @@ executor = ThreadPoolExecutor(max_workers=4)
 
 async def load_excel_async(file_path: str):
     loop = asyncio.get_event_loop()
-    # sheet_name=None lee todas las hojas y devuelve un diccionario
-    sheets_dict = await loop.run_in_executor(executor, pd.read_excel, file_path, None)
+    # sheet_id=0 lee todas las hojas y devuelve un diccionario
+    def read_all_sheets(file_path: str):
+        return pl.read_excel(file_path, sheet_id=0)
+    
+    sheets_dict = await loop.run_in_executor(executor, read_all_sheets, file_path)
     return sheets_dict
 
 
@@ -19,7 +22,7 @@ async def process_excel_to_documents(file_path: str):
 
     data = []
     for sheet_name, df in sheets_dict.items():
-        records = df.to_dict('records')
+        records = df.to_dicts()
         
         for idx, row_dict in enumerate(records):
             content = "\n".join([f"{col}: {val}" for col, val in row_dict.items()])
